@@ -1,0 +1,186 @@
+﻿<Window x:Class="Klient1TabulkaDB.MainWindow"
+        xmlns:my="clr-namespace:Klient1TabulkaDB"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Database client :: by Roman Hodulák" Height="480" Width="750" MinHeight="300" MinWidth="450" ResizeMode="CanResizeWithGrip" WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <ObjectDataProvider x:Key="EmployeeInfoDataSource" ObjectType="{x:Type my:EmployeeItem}"/>
+        <Style x:Key="{x:Type my:EditBox}" TargetType="{x:Type my:EditBox}" >
+            <Setter Property="HorizontalAlignment" Value="Left"  />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type my:EditBox}">
+                        <TextBlock x:Name="PART_TextBlockPart"  
+                     Text="{Binding Path=Value,RelativeSource = 
+                           {RelativeSource TemplatedParent}}">
+                        </TextBlock>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Storyboard x:Key="errorAnimation">
+            <DoubleAnimation Storyboard.TargetName="errorText" Storyboard.TargetProperty="(TextBlock.Opacity)" 
+                                                     From="0" To="1" Duration="0:0:1" BeginTime="0:0:0.0" DecelerationRatio="1" AutoReverse="False"  />
+            <DoubleAnimation Storyboard.TargetName="errorText" Storyboard.TargetProperty="(TextBlock.Opacity)" 
+                                                     From="1" To="0" Duration="0:0:1" BeginTime="0:0:5.0" DecelerationRatio="1" AutoReverse="False"  />
+        </Storyboard>
+
+        <Storyboard x:Key="titleAnimation">
+            <!--Title leave-->
+            <ThicknessAnimation Storyboard.TargetName="TitleText1" Storyboard.TargetProperty="(TextBlock.Margin)" 
+                                                        From="0,5,10,0" To="0,5,60,0" BeginTime="0:0:0.0" Duration="0:0:0.5" DecelerationRatio="1" AutoReverse="False"  />
+            <DoubleAnimation Storyboard.TargetName="TitleText1" Storyboard.TargetProperty="(TextBlock.Opacity)" 
+                                                     From="1" To="0" Duration="0:0:0.5" BeginTime="0:0:0.0" DecelerationRatio="1" AutoReverse="False"  />
+            <!--Notification show-->
+            <ColorAnimation Storyboard.TargetName="tbBrush" Storyboard.TargetProperty="(Color)" BeginTime="0:0:0.5" Duration="0" To="DarkGreen"></ColorAnimation>
+            <ThicknessAnimation Storyboard.TargetName="TitleText1" Storyboard.TargetProperty="(TextBlock.Margin)" 
+                                                        To="0,5,10,0" BeginTime="0:0:0.5" Duration="0" DecelerationRatio="1" AutoReverse="False"  />
+            <StringAnimationUsingKeyFrames Storyboard.TargetName="TitleText1" Storyboard.TargetProperty="(TextBlock.Text)" AutoReverse="False"
+                                                                   BeginTime="0:0:0.5">
+                <DiscreteStringKeyFrame Value="Entry saved" KeyTime="0"></DiscreteStringKeyFrame>
+            </StringAnimationUsingKeyFrames>
+            <DoubleAnimation Storyboard.TargetName="TitleText1" Storyboard.TargetProperty="(TextBlock.Opacity)" 
+                                                     From="0" To="1" Duration="0:0:1.0" BeginTime="0:0:0.5" DecelerationRatio="1" AutoReverse="False"  />
+            <!--Notification leave-->
+            <DoubleAnimation Storyboard.TargetName="TitleText1" Storyboard.TargetProperty="(TextBlock.Opacity)" 
+                                                     From="1" To="0" Duration="0:0:0.5" BeginTime="0:0:2.0" DecelerationRatio="1" AutoReverse="False"  />
+            <ThicknessAnimation Storyboard.TargetName="TitleText1" Storyboard.TargetProperty="(TextBlock.Margin)" 
+                                                        From="0,5,10,0" To="0,5,60,0" BeginTime="0:0:2.0" Duration="0:0:0.5" DecelerationRatio="1" AutoReverse="False"  />
+            <!--Title show-->
+            <ColorAnimation Storyboard.TargetName="tbBrush" Storyboard.TargetProperty="(Color)" BeginTime="0:0:2.5" Duration="0" To="Black"></ColorAnimation>
+            <ThicknessAnimation Storyboard.TargetName="TitleText1" Storyboard.TargetProperty="(TextBlock.Margin)" 
+                                                        To="0,5,10,0" Duration="0:0:0" BeginTime="0:0:2.5" AutoReverse="False"  />
+            <DoubleAnimation Storyboard.TargetName="TitleText1" Storyboard.TargetProperty="(TextBlock.Opacity)" 
+                                                     From="0" To="1" Duration="0:0:1.0" BeginTime="0:0:2.5" DecelerationRatio="1" AutoReverse="False"  />
+            <StringAnimationUsingKeyFrames Storyboard.TargetName="TitleText1" Storyboard.TargetProperty="(TextBlock.Text)" AutoReverse="False"
+                                                                   BeginTime="0:0:2.5">
+                <DiscreteStringKeyFrame Value="New employee:" KeyTime="0"></DiscreteStringKeyFrame>
+            </StringAnimationUsingKeyFrames>
+
+        </Storyboard>
+    </Window.Resources>
+    
+    <Grid Background="White">
+        <Menu BorderBrush="DarkGray" BorderThickness="0,0,0,1" Margin="0,0,0,0" VerticalAlignment="Top" Height="20"  HorizontalAlignment="Stretch">
+            <MenuItem Header="Connection">
+                <MenuItem Header="Refresh" Click="Refresh_Click"></MenuItem>
+                <Separator Margin="0,-4,0,-4" />
+                <MenuItem Header="Terminate" Click="Terminate_Click"></MenuItem>
+            </MenuItem>
+            <MenuItem Header="Tools">
+                <MenuItem Header="Reset database" Click="ClearDB_Click"></MenuItem>
+            </MenuItem>
+        </Menu>
+        <Grid Name="mainGrid" Margin="0,20,0,20" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" SizeChanged="Grid_SizeChanged">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="500*"></ColumnDefinition>
+                <ColumnDefinition Width="280*" MinWidth="200"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <ListView Padding="-3,0,-3,0" Name="listView" BorderBrush="DarkGray" Background="LightGray" Foreground="Black" HorizontalAlignment="Stretch" Margin="0,0,0,0" VerticalAlignment="Stretch" BorderThickness="0,0,1,0" KeyUp="listView_KeyUp">
+                <ListView.Resources>
+                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightColorKey}" Color="Green" />
+                </ListView.Resources>
+                <ListView.View>
+                    <GridView>
+                        <GridView.ColumnHeaderContainerStyle>
+                            <Style TargetType="GridViewColumnHeader">
+                                <Setter Property="Height"  Value="21" />
+                                <Setter Property="VerticalContentAlignment"  Value="Bottom" />
+                                <Setter Property="Padding"  Value="0,0,0,1" />
+                            </Style>
+                        </GridView.ColumnHeaderContainerStyle>
+                        <GridView.Columns>
+                            <GridViewColumn Width="25" DisplayMemberBinding="{Binding ID}">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="ID" Click="GridViewColumnHeader_Click">ID</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                            </GridViewColumn>
+                            <GridViewColumn Width="70">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="Name" Click="GridViewColumnHeader_Click">Name</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <my:EditBox Value="{Binding Path = Name}" EditType="Text" ValueChanged="EditBox_ValueChanged" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="70" x:Name="surnameHeader">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="Surname" Click="GridViewColumnHeader_Click">Surname</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <my:EditBox Value="{Binding Path = Surname}" EditType="Text" ValueChanged="EditBox_ValueChanged" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="100">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="Date_of_birth" Click="GridViewColumnHeader_Click">Date of birth</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <my:EditBox Value="{Binding Path = Date_of_birth}" EditType="Date" ValueChanged="EditBox_ValueChanged" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="60">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="Wage" Click="GridViewColumnHeader_Click">Wage</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <my:EditBox Value="{Binding Path = Wage}" EditType="Int" ValueChanged="EditBox_ValueChanged" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="100">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="Employed_since" Click="GridViewColumnHeader_Click">Employed since</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <my:EditBox Value="{Binding Path = Employed_since}" EditType="Date" ValueChanged="EditBox_ValueChanged" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView.Columns>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+            <StackPanel Background="#FFE6E6E6" Grid.Column="1">
+                <TextBlock Name="TitleText1" Grid.Column="1" HorizontalAlignment="Right" Margin="0,5,10,0" TextWrapping="Wrap" Text="New employee:" VerticalAlignment="Top" RenderTransformOrigin="0.525,0.376" FontSize="22" FontFamily="Segoe UI Light">
+                    <TextBlock.Foreground>
+                      <SolidColorBrush x:Name="tbBrush" Color="Black"/>
+                    </TextBlock.Foreground>
+                </TextBlock>
+                <TextBox Name="nameBox" Margin="107,10,10,0" VerticalAlignment="Top" Height="22" Grid.Column="1" KeyDown="form_KeyDown" />
+                <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="62,-20,0,0" TextWrapping="Wrap" Text="Name:" VerticalAlignment="Top" RenderTransformOrigin="0.525,0.376"/>
+                <TextBox Name="surnameBox" Margin="107,5,10,0" VerticalAlignment="Top" Height="22" Grid.Column="1" KeyDown="form_KeyDown" />
+                <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="47,-20,0,0" TextWrapping="Wrap" Text="Surname:" VerticalAlignment="Top" RenderTransformOrigin="0.525,0.376"/>
+                <DatePicker Name="birthdateBox" Margin="107,5,10,0" VerticalAlignment="Top" Height="22" Grid.Column="1" PreviewKeyDown="form_KeyDown" />
+                <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="26,-20,0,0" TextWrapping="Wrap" Text="Date of birth:" VerticalAlignment="Top" RenderTransformOrigin="0.525,0.376"/>
+                <my:NumericBox x:Name="wageBox" Margin="107,5,10,0" VerticalAlignment="Top" Height="22" Grid.Column="1" KeyDown="form_KeyDown" />
+                <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="63,-20,0,0" TextWrapping="Wrap" Text="Wage:" VerticalAlignment="Top" RenderTransformOrigin="0.525,0.376"/>
+                <DatePicker Name="employeeBox" Margin="107,5,10,0" VerticalAlignment="Top" Height="22" Grid.Column="1" PreviewKeyDown="form_KeyDown" />
+                <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="12,-20,0,0" TextWrapping="Wrap" Text="Employed since:" VerticalAlignment="Top" RenderTransformOrigin="0.525,0.376"/>
+                <Separator Margin="10,5,10,0"></Separator>
+                <Grid Margin="10,5,10,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Button Name="submitButton" Height="24" Content="Submit" Margin="0,0,3,0" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Click="submitButton_Click" IsEnabled="False"></Button>
+                    <Button Name="clearButton" Grid.Column="1" Height="24" Content="Clear" Margin="3,0,0,0" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Click="clearButton_Click"></Button>
+                </Grid>
+                <TextBlock Name="errorText" Grid.Column="1" Opacity="0" HorizontalAlignment="Left" Margin="12,5,12,0" TextWrapping="Wrap" Text="Error message" VerticalAlignment="Top" Foreground="Red" RenderTransformOrigin="0.525,0.376" FontSize="12" FontFamily="Segoe UI" />
+            </StackPanel>
+            <GridSplitter Grid.Column="0" Width="5" Margin="0,0,-2.5,0" Background="Transparent"></GridSplitter>
+        </Grid>
+        <StatusBar BorderThickness="0,1,0,0" BorderBrush="DarkGray" Height="22" VerticalAlignment="Bottom" HorizontalContentAlignment="Right" Padding="1,0,188,0">
+            <StatusBarItem Name="Footer" Foreground="DimGray" HorizontalContentAlignment="Left">Offline</StatusBarItem>
+        </StatusBar>
+    </Grid>
+</Window>
